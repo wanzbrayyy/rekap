@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const { connectDB } = require('./database');
 const config = require('./config');
 const UserHelper = require('./modules/user-helper');
@@ -7,6 +7,7 @@ const RekapHandler = require('./modules/rekap');
 const SaldoHandler = require('./modules/saldo');
 const ReferralHandler = require('./modules/referral');
 const DepositHandler = require('./modules/deposit');
+const { setSetting, getSetting } = require('./models/settings');
 const Game = require('./models/game');
 
 // Connect to Database
@@ -45,12 +46,19 @@ bot.start(async (ctx) => {
       }
       await UserHelper.findOrCreateUserFromCtx(ctx);
 
-      await ctx.replyWithMarkdown(`
+      const welcomeMessage = `
 *Selamat Datang di ${config.botName}!*
 ${config.botDescription}
 
-Gunakan perintah di bawah untuk berinteraksi dengan bot.
-      `);
+Silakan pilih menu di bawah ini:
+      `;
+
+      const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('👤 Profil Saya', 'show_profile'), Markup.button.callback('💸 Tarik Saldo', 'guide_withdraw')],
+        [Markup.button.callback('Deposit via OCR', 'guide_deposit'), Markup.button.callback('💌 Undang Teman', 'show_referral_link')]
+      ]);
+
+      await ctx.replyWithMarkdown(welcomeMessage, keyboard);
     } catch (error) {
       console.error("Error in /start command:", error);
     }
@@ -217,6 +225,26 @@ bot.command('bulatkan', adminOnly, async (ctx) => {
     ctx.reply(result.message);
 });
 
+bot.command('setgroup', adminOnly, async (ctx) => {
+    if (ctx.chat.type !== 'group' && ctx.chat.type !== 'supergroup') {
+        return ctx.reply('❌ Perintah ini hanya bisa digunakan di dalam grup.');
+    }
+
+    try {
+        const chatMember = await ctx.getChatMember(ctx.botInfo.id);
+        if (chatMember.status !== 'administrator' || !chatMember.can_pin_messages) {
+            return ctx.reply('❌ Saya harus menjadi admin di grup ini dan memiliki izin untuk "Pin Messages" agar fitur ini berfungsi.');
+        }
+
+        await setSetting('activeChatId', ctx.chat.id);
+        await ctx.reply(`✅ Grup ini (${ctx.chat.title}) telah ditetapkan sebagai grup aktif. Pesan rekap dan deposit akan di-pin di sini.`);
+
+    } catch (error) {
+        console.error("Error in /setgroup:", error);
+        ctx.reply("❌ Terjadi kesalahan saat memeriksa status admin saya.");
+    }
+});
+
 
 bot.on('photo', async (ctx) => {
     if (ctx.message.caption && ctx.message.caption.startsWith('/')) {
@@ -237,7 +265,10 @@ bot.on('photo', async (ctx) => {
       );
 
       if (result.success) {
-        await ctx.pinChatMessage(processingMessage.message_id);
+        const activeChatId = await getSetting('activeChatId');
+        if (ctx.chat.id === activeChatId) {
+            await ctx.pinChatMessage(processingMessage.message_id);
+        }
       }
 
     } catch (error) {
@@ -274,12 +305,52 @@ bot.on('text', async (ctx) => {
           { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
-        await ctx.pinChatMessage(sentMessage.message_id);
+        const activeChatId = await getSetting('activeChatId');
+        if (ctx.chat.id === activeChatId) {
+            await ctx.pinChatMessage(sentMessage.message_id);
+        }
 
       } catch (error) {
         console.error("Error processing recap:", error);
         ctx.reply("❌ Terjadi kesalahan saat memproses rekap.");
       }
+    }
+});
+
+
+// ===== Callback Query Handlers for Main Menu =====
+bot.action('show_profile', async (ctx) => {
+    try {
+        const user = await UserHelper.findOrCreateUserFromCtx(ctx);
+        const message = await ReferralHandler.getProfileMessage(user, ctx.botInfo.username);
+        await ctx.editMessageText(message, { parse_mode: 'Markdown', disable_web_page_preview: true });
+    } catch (error) {
+        console.error("Error in show_profile action:", error);
+        await ctx.answerCbQuery("❌ Terjadi kesalahan.");
+    }
+});
+
+bot.action('guide_withdraw', async (ctx) => {
+    const message = "Untuk menarik saldo, gunakan perintah:\n`/withdraw [jumlah]`\n\nContoh:\n`/withdraw 50000`";
+    await ctx.replyWithMarkdown(message);
+    await ctx.answerCbQuery();
+});
+
+bot.action('guide_deposit', async (ctx) => {
+    const message = "Untuk melakukan deposit, cukup kirimkan foto bukti transfer Anda yang jelas ke chat ini. Bot akan memprosesnya secara otomatis.";
+    await ctx.reply(message);
+    await ctx.answerCbQuery();
+});
+
+bot.action('show_referral_link', async (ctx) => {
+    try {
+        const user = await UserHelper.findOrCreateUserFromCtx(ctx);
+        const referralLink = `https://t.me/${ctx.botInfo.username}?start=${user.userId}`;
+        const message = `💌 Undang teman Anda dengan link di bawah ini:\n\n\`${referralLink}\``;
+        await ctx.replyWithMarkdown(message);
+    } catch (error) {
+        console.error("Error in show_referral_link action:", error);
+        await ctx.answerCbQuery("❌ Terjadi kesalahan.");
     }
 });
 

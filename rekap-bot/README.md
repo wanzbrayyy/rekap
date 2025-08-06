@@ -52,13 +52,25 @@ npm start
 
 Bot Anda sekarang siap digunakan.
 
-## Alur Kerja Penarikan (Withdrawal)
+## Perintah & Fitur Penting
 
-1.  Pengguna mengirim perintah `/withdraw [jumlah]`. Contoh: `/withdraw 50000`.
-2.  Bot akan memvalidasi saldo dan meminta pengguna mengirimkan info pembayaran (Nomor DANA atau gambar QRIS).
-3.  Pengguna mengirimkan info tersebut sebagai pesan biasa.
-4.  Bot akan secara otomatis meneruskan permintaan dan info pembayaran ke Admin utama yang terdaftar untuk diproses secara manual.
-5.  Pengguna akan menerima konfirmasi bahwa permintaan mereka telah diteruskan.
+### Menu Utama
+Saat Anda memulai bot dengan `/start`, Anda akan disambut dengan menu tombol interaktif untuk navigasi yang mudah ke fitur-fitur seperti Profil, Penarikan, dan lainnya.
+
+### Pengaturan Grup (Khusus Admin)
+Untuk memastikan bot menyematkan (pin) pesan rekap dan deposit di grup yang benar, admin harus melakukan pengaturan satu kali:
+1. Tambahkan bot ke grup Anda.
+2. Berikan hak **Admin** kepada bot, termasuk izin untuk **"Pin Messages"**.
+3. Ketik perintah `/setgroup` di grup tersebut.
+
+Bot akan mengkonfirmasi jika pengaturan berhasil. Setelah itu, semua pin akan diarahkan ke grup tersebut.
+
+### Alur Kerja Penarikan (Withdrawal)
+1.  Gunakan tombol "Tarik Saldo" dari menu utama atau ketik `/withdraw [jumlah]`. Contoh: `/withdraw 50000`.
+2.  Bot akan memvalidasi saldo dan meminta Anda mengirimkan info pembayaran (Nomor DANA atau gambar QRIS).
+3.  Kirim info tersebut sebagai pesan biasa.
+4.  Bot akan secara otomatis meneruskan permintaan dan info pembayaran ke Admin untuk diproses secara manual.
+5.  Anda akan menerima konfirmasi bahwa permintaan telah diteruskan.
 
 ---
 *Dikembangkan oleh Jules.*
