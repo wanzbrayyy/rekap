@@ -30,20 +30,12 @@ Bot Telegram canggih untuk manajemen rekap game, saldo, deposit & penarikan otom
     npm install
     ```
 
-3.  **Buat File `.env`**
-    - Buat file baru bernama `.env` di direktori utama.
-    - Isi dengan kredensial yang Anda miliki, mengikuti format ini:
-      ```env
-      BOT_TOKEN=8085407682:AAF2VKkMf8mOIrYCZq807CQxuiUc35y72ss
-      MONGODB_URL=mongodb+srv://zanssxploit:pISqUYgJJDfnLW9b@cluster0.fgram.mongodb.net/scmarket_db?retryWrites=true&w=majority
-      ADMIN_ID=7774371395
-      ```
-    - **Penting:** Gunakan token, URL, dan ID Anda sendiri jika berbeda dari contoh di atas.
+### 3. Konfigurasi
+    - Buka file `config.js`.
+    - Edit nilai-nilai di dalamnya (seperti `token`, `mongoUrl`, `adminIds`, `botName`) sesuai dengan kebutuhan Anda.
+    - **Penting:** Pastikan Anda memasukkan token bot, URL database, dan ID admin Anda sendiri.
 
-4.  **Konfigurasi Tambahan (Opsional)**
-    - Buka file `config.js` untuk mengubah nama bot (`botName`) atau deskripsi jika diperlukan.
-
-### 3. Menjalankan Bot
+### 4. Menjalankan Bot
 
 Setelah konfigurasi selesai, jalankan bot dengan perintah:
 ```bash
