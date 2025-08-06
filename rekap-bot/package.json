@@ -1,0 +1,23 @@
+{
+  "name": "rekap-bot",
+  "version": "1.0.0",
+  "description": "Bot Telegram Premium untuk manajemen rekap game",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "rekap",
+    "ocr"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.5.0",
+    "telegraf": "^4.12.2",
+    "tesseract.js": "^5.0.3"
+  }
+}
