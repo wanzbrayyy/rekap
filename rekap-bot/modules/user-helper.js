@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../models/user'); // This will fail until user.js is created. Placeholder.
 
 /**
  * Finds a user by their Telegram username (case-insensitive).

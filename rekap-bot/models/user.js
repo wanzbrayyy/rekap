@@ -28,10 +28,13 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
-  // Team can be a simple string or linked to another collection if teams get more complex
   team: {
     type: String,
     default: null,
+  },
+  withdrawalState: {
+    isWaiting: { type: Boolean, default: false },
+    amount: { type: Number, default: 0 },
   }
 }, { timestamps: true });
 

@@ -1,11 +1,9 @@
-const User = require('../models/user');
 const Transaction = require('../models/transaction');
 const { findUserByUsername, findOrCreateUserByUsername } = require('./user-helper');
 
 async function adjustBalance({ playerName, amount, type, adminUsername }) {
     const user = await findOrCreateUserByUsername(playerName);
     if (!user) {
-        // This case should ideally not be hit with findOrCreate, but as a safeguard:
         return { success: false, message: `❌ Gagal membuat atau menemukan pemain ${playerName}.` };
     }
 

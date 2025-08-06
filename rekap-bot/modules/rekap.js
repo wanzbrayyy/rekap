@@ -1,5 +1,4 @@
 const Game = require('../models/game');
-const User = require('../models/user');
 const Transaction = require('../models/transaction');
 const { findOrCreateUserByUsername } = require('./user-helper');
 
@@ -32,7 +31,6 @@ function parseRecapText(text) {
     }
 
     if (currentTeam && trimmedLine) {
-      // Regex: (Player Name) (Amount with optional 'k') (Optional Flags LF/P)
       const playerRegex = /^([\w\s]+?)\s+([\d,.]+k?)\s*((?:LF|P|\s)*)$/i;
       const match = trimmedLine.match(playerRegex);
 
@@ -41,7 +39,6 @@ function parseRecapText(text) {
         let amountStr = match[2].toLowerCase();
         let amount;
 
-        // Convert 'k' to '000' and handle comma/dot separators
         amountStr = amountStr.replace(/,/g, '');
         if (amountStr.endsWith('k')) {
           amount = parseFloat(amountStr.slice(0, -1)) * 1000;
@@ -61,7 +58,6 @@ function parseRecapText(text) {
     }
   }
 
-  // Only return a valid object if both K: and B: were found at some point
   if (teamK_found || teamB_found) {
       return teams;
   }
@@ -89,7 +85,6 @@ function formatRecapMessage(gameData) {
 
     return message;
 }
-
 
 /**
  * Processes the end of a game, calculates winnings, and updates balances.
@@ -156,12 +151,6 @@ async function processRekapWin(chatId, feePercentage = 0) {
         });
     }
 
-    // Handle the fee if it exists
-    if (feeAmount > 0) {
-        // Here you would assign the fee to an admin/bot owner
-        // For now, it just disappears, but a transaction could be logged.
-    }
-
     game.status = 'finished';
     game.winner = winningTeamName;
     game.feePercentage = feePercentage;
@@ -178,7 +167,6 @@ ${results.join('\n')}
 
     return { success: true, message: resultMessage, game };
 }
-
 
 async function cancelRekap(chatId) {
     const game = await Game.findOneAndDelete({ chatId, status: 'ongoing' });

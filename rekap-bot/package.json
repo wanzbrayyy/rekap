@@ -1,19 +1,11 @@
 {
-  "name": "rekap-bot",
+  "name": "wanzofc-kap-bot",
   "version": "1.0.0",
-  "description": "Bot Telegram Premium untuk manajemen rekap game",
+  "description": "Bot Telegram untuk manajemen rekap game, saldo, dan deposit.",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
-  "keywords": [
-    "telegram",
-    "bot",
-    "rekap",
-    "ocr"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
     "mongoose": "^7.5.0",

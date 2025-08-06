@@ -1,7 +1,7 @@
 const Tesseract = require('tesseract.js');
-const User = require('../models/user');
 const Transaction = require('../models/transaction');
 const { findOrCreateUserFromCtx } = require('./user-helper');
+const config = require('../config');
 
 /**
  * Parses OCR text to find a plausible deposit amount.
@@ -10,20 +10,13 @@ const { findOrCreateUserFromCtx } = require('./user-helper');
  */
 function parseAmountFromText(text) {
   let bestCandidate = 0;
-
-  // Regex to find numbers, possibly with separators like . or ,
-  // It's intentionally broad to catch different formats.
   const amountRegex = /([\d.,]+)/g;
   let match;
 
   while ((match = amountRegex.exec(text)) !== null) {
-    // Clean the number string: remove dots, then replace comma with a dot for decimals.
     const numStr = match[1].replace(/\./g, '').replace(',', '.');
     const num = parseFloat(numStr);
 
-    // Heuristic: Valid bank transfers are usually significant amounts.
-    // This avoids recognizing small numbers like dates or reference numbers.
-    // We'll also assume whole numbers for deposits.
     if (!isNaN(num) && num >= 10000 && num % 1 === 0) {
       if (num > bestCandidate) {
         bestCandidate = num;
@@ -40,14 +33,13 @@ function parseAmountFromText(text) {
  * @returns {object} An object with the result of the operation.
  */
 async function processDeposit(ctx) {
-  // Get the highest resolution photo
   const photo = ctx.message.photo[ctx.message.photo.length - 1];
   const fileLink = await ctx.telegram.getFileLink(photo.file_id);
+  const adminId = config.adminIds[0];
 
   try {
-    // Recognize text from the image. Using 'ind' for Indonesian.
     const { data: { text } } = await Tesseract.recognize(fileLink.href, 'ind', {
-      logger: m => console.log(m), // Optional: log Tesseract progress
+      logger: m => console.log(m),
     });
 
     const amount = parseAmountFromText(text);
@@ -65,10 +57,28 @@ async function processDeposit(ctx) {
         description: `Deposit via OCR. Raw text snippet: ${text.substring(0, 100)}...`,
       });
 
-      const message = `✅ Deposit berhasil! Sejumlah ${amount.toLocaleString('id-ID')} telah ditambahkan ke saldo Anda. Saldo baru: ${user.balance.toLocaleString('id-ID')}`;
-      return { success: true, message };
+      const successMessage = `✅ Deposit berhasil! Sejumlah ${amount.toLocaleString('id-ID')} telah ditambahkan ke saldo Anda. Saldo baru: ${user.balance.toLocaleString('id-ID')}`;
+
+      // Forward notification to admin
+      if (adminId) {
+        const adminMessage = `
+✅ *Deposit Sukses (OCR)*
+-----------------------------------
+*Pengguna:* ${user.firstName} (@${user.username || 'N/A'})
+*User ID:* \`${user.userId}\`
+*Jumlah Deposit:* *${amount.toLocaleString('id-ID')}*
+*Saldo Baru:* ${user.balance.toLocaleString('id-ID')}
+        `.trim();
+        try {
+            await ctx.telegram.sendMessage(adminId, adminMessage, { parse_mode: 'Markdown' });
+        } catch (e) {
+            console.error("Failed to send deposit notification to admin:", e);
+        }
+      }
+
+      return { success: true, message: successMessage };
     } else {
-      return { success: false, message: `❌ OCR tidak dapat menemukan nominal transfer yang valid pada gambar. Mohon coba lagi dengan gambar yang lebih jelas.` };
+      return { success: false, message: `❌ OCR tidak dapat menemukan nominal transfer yang valid pada gambar.` };
     }
   } catch (error) {
     console.error("OCR process failed:", error);

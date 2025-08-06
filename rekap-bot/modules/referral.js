@@ -74,7 +74,6 @@ async function processReferral(ctx) {
 }
 
 module.exports = {
-  findOrCreateUserFromCtx,
   getProfileMessage,
   processReferral,
 };

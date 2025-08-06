@@ -20,7 +20,7 @@ const transactionSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'completed',
   },
-  description: { // For storing extra details like which game it was for, or OCR text
+  description: { // For storing extra details
     type: String,
     default: '',
   },
